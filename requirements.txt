@@ -1,16 +1,5 @@
-# Core dependencies
-numpy>=1.26.0  
-tensorflow-cpu==2.15.0  # Stable version
-streamlit==1.42.1
-Pillow>=10.0.0
-gdown>=4.7.1
-
-# Additional dependencies
-typing-extensions>=4.5.0
-packaging>=23.0
-wheel>=0.41.0
-setuptools>=69.0.0
-h5py>=3.10.0
-requests>=2.31.0
-urllib3>=2.0.0
-protobuf>=3.20.0  # Added for TensorFlow compatibility
+streamlit==1.26.0
+numpy==1.23.5
+Pillow==9.5.0
+tensorflow==2.12.0
+gdown==4.6.6
