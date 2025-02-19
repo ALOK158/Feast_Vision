@@ -43,7 +43,23 @@ def load_trained_model():
                 gdown.download(MODEL_URL, MODEL_PATH, fuzzy=True, quiet=False)
         
         with st.spinner("🔄 Loading model..."):
-            model = load_model(MODEL_PATH)
+            # Custom load options to handle version differences
+            custom_objects = {
+                'RandomRotation': tf.keras.layers.RandomRotation,
+                'RandomFlip': tf.keras.layers.RandomFlip
+            }
+            model = load_model(
+                MODEL_PATH,
+                custom_objects=custom_objects,
+                compile=False  # Don't compile initially
+            )
+            
+            # Recompile with basic settings
+            model.compile(
+                optimizer='adam',
+                loss='sparse_categorical_crossentropy',
+                metrics=['accuracy']
+            )
             return model
             
     except Exception as e:
@@ -88,20 +104,23 @@ def main():
                 processed_image = preprocess_image(image)
                 
                 if processed_image is not None:
-                    prediction = model.predict(processed_image, verbose=0)
-                    predicted_class_index = np.argmax(prediction, axis=1)[0]
-                    processing_time = time.time() - start_time
-                    
-                    st.markdown("### 📊 Prediction Results")
-                    st.markdown(
-                        f"""
-                        <div class="prediction-box">
-                            <h4>Predicted Class Index: {predicted_class_index}</h4>
-                            <p>Processing Time: {processing_time:.3f} seconds</p>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
+                    try:
+                        prediction = model.predict(processed_image, verbose=0)
+                        predicted_class_index = np.argmax(prediction, axis=1)[0]
+                        processing_time = time.time() - start_time
+                        
+                        st.markdown("### 📊 Prediction Results")
+                        st.markdown(
+                            f"""
+                            <div class="prediction-box">
+                                <h4>Predicted Class Index: {predicted_class_index}</h4>
+                                <p>Processing Time: {processing_time:.3f} seconds</p>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+                    except Exception as e:
+                        st.error(f"❌ Error during prediction: {str(e)}")
 
 if __name__ == "__main__":
     main()
