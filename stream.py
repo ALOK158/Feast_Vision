@@ -1,16 +1,26 @@
 import streamlit as st
 import numpy as np
+import gdown
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+import os
 
-# Load trained model
-MODEL_PATH = "FinalModel_1.keras"  # Update with correct file path to your .keras model
-try:
-    model = load_model(MODEL_PATH)
-except Exception as e:
-    st.error(f"Error loading model: {e}")
-    st.stop()
+# Function to download model from Google Drive
+@st.cache_resource  # Ensures model is downloaded only once
+def load_trained_model():
+    MODEL_URL = "https://drive.google.com/uc?id=12_1pkbE5zjeySCrgkHGjghiIEgPhQHXn"  # Your model's file ID
+    MODEL_PATH = "FinalModel_1.keras"
+
+    if not os.path.exists(MODEL_PATH):  # Download only if not already downloaded
+        with st.spinner("Downloading model... This may take a while."):
+            gdown.download(MODEL_URL, MODEL_PATH, quiet=False)
+
+    # Load the model
+    return load_model(MODEL_PATH)
+
+# Load the model once
+model = load_trained_model()
 
 # Function to preprocess input image
 def preprocess_image(image):
@@ -42,9 +52,8 @@ if uploaded_file is not None:
         prediction = model.predict(processed_image)
     
     # Get predicted class index
-    predicted_class_index = np.max(prediction, axis=1)[0]  # Get the class index with highest probability
-    st.write(f"### Predicted Class Index: {predicted_class_index}")
-    
-    # Display confidence
+    predicted_class_index = np.argmax(prediction, axis=1)[0]  # Get the class index with highest probability
     confidence = np.max(prediction) * 100
+    
+    st.write(f"### Predicted Class Index: {predicted_class_index}")
     st.write(f"Confidence: {confidence:.2f}%")
