@@ -5,61 +5,103 @@ import os
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+import time
 
-# Google Drive Model File ID
+# Model configuration
 MODEL_ID = "12_1pkbE5zjeySCrgkHGjghiIEgPhQHXn"
 MODEL_PATH = "FinalModel_1.keras"
 MODEL_URL = f"https://drive.google.com/uc?export=download&id={MODEL_ID}"
 
-# Function to download model if not present
+# Set page config
+st.set_page_config(
+    page_title="Image Classifier",
+    page_icon="🔍",
+    layout="wide"
+)
+
+# Custom CSS for better styling
+st.markdown("""
+    <style>
+        .stAlert {
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .prediction-box {
+            padding: 2rem;
+            border-radius: 0.5rem;
+            background-color: #f0f2f6;
+            margin: 1rem 0;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 @st.cache_resource
 def load_trained_model():
-    if not os.path.exists(MODEL_PATH):
-        with st.spinner("Downloading model... This may take a while."):
-            gdown.download(MODEL_URL, MODEL_PATH, fuzzy=True, quiet=False)
-    
     try:
-        return load_model(MODEL_PATH)
+        if not os.path.exists(MODEL_PATH):
+            with st.spinner("📥 Downloading model... This may take a while."):
+                gdown.download(MODEL_URL, MODEL_PATH, fuzzy=True, quiet=False)
+        
+        with st.spinner("🔄 Loading model..."):
+            model = load_model(MODEL_PATH)
+            return model
+            
     except Exception as e:
-        st.error(f"Error loading model: {e}")
+        st.error(f"❌ Error loading model: {str(e)}")
         st.stop()
 
-# Load trained model
-model = load_trained_model()
-
-# Function to preprocess input image
 def preprocess_image(image):
-    """Preprocess the image before feeding it to the model."""
-    image = image.convert("RGB")  # Ensure 3 channels
-    image = image.resize((224, 224))  # Resize to match model input
+    try:
+        image = image.convert("RGB")
+        image = image.resize((224, 224))
+        img_array = np.array(image, dtype=np.float32)
+        img_array = img_array / 255.0
+        img_array = np.expand_dims(img_array, axis=0)
+        return img_array
     
-    # Convert image to NumPy array
-    image = np.array(image, dtype=np.float32)
-    image = image / 255.0  # Normalize if required (ensure this matches training)
-    
-    # Expand dimensions to match model input shape (batch_size, height, width, channels)
-    image = np.expand_dims(image, axis=0)
-    
-    return image
+    except Exception as e:
+        st.error(f"❌ Error preprocessing image: {str(e)}")
+        return None
 
-# Streamlit UI
-st.title("Image Classification with EfficientNetB0")
+def main():
+    st.title("🔍 Image Classification")
+    st.write("Upload an image to classify it using EfficientNetB0")
+    
+    model = load_trained_model()
+    
+    uploaded_file = st.file_uploader(
+        "Choose an image file",
+        type=["jpg", "jpeg", "png", "bmp"],
+        help="Supported formats: JPG, JPEG, PNG, BMP"
+    )
+    
+    if uploaded_file is not None:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Image", use_column_width=True)
+        
+        with col2:
+            with st.spinner("🔄 Processing image..."):
+                start_time = time.time()
+                processed_image = preprocess_image(image)
+                
+                if processed_image is not None:
+                    prediction = model.predict(processed_image, verbose=0)
+                    predicted_class_index = np.argmax(prediction, axis=1)[0]
+                    processing_time = time.time() - start_time
+                    
+                    st.markdown("### 📊 Prediction Results")
+                    st.markdown(
+                        f"""
+                        <div class="prediction-box">
+                            <h4>Predicted Class Index: {predicted_class_index}</h4>
+                            <p>Processing Time: {processing_time:.3f} seconds</p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
-uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Uploaded Image", use_column_width=True)
-    
-    # Preprocess and predict
-    with st.spinner("Processing image..."):
-        processed_image = preprocess_image(image)
-        prediction = model.predict(processed_image)
-    
-    # Get predicted class index
-    predicted_class_index = np.argmax(prediction, axis=1)[0]  # Get the class index with highest probability
-    st.write(f"### Predicted Class Index: {predicted_class_index}")
-    
-    # Display confidence
-    confidence = np.max(prediction) * 100
-    st.write(f"Confidence: {confidence:.2f}%")
+if __name__ == "__main__":
+    main()
