@@ -1,3 +1,4 @@
+# Add warning suppressions at the top
 import os
 import logging
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -9,6 +10,7 @@ import gdown
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+from tensorflow.keras.layers.preprocessing.image_preprocessing import RandomRotation, RandomFlip
 import time
 
 # Force TensorFlow to use CPU on Streamlit Cloud
@@ -50,10 +52,26 @@ def load_trained_model():
                 gdown.download(MODEL_URL, MODEL_PATH, fuzzy=True, quiet=False)
         
         with st.spinner("🔄 Loading model..."):
-            return load_model(MODEL_PATH)
+            # Custom objects dictionary for model loading
+            custom_objects = {
+                'RandomRotation': RandomRotation,
+                'RandomFlip': RandomFlip
+            }
+            
+            # Load model with custom objects
+            with tf.keras.utils.custom_object_scope(custom_objects):
+                model = load_model(MODEL_PATH, compile=False)
+                # Recompile the model with basic settings
+                model.compile(
+                    optimizer='adam',
+                    loss='sparse_categorical_crossentropy',
+                    metrics=['accuracy']
+                )
+                return model
     except Exception as e:
         st.error(f"❌ Error loading model: {str(e)}")
-        return None  # Prevents app crash
+        st.error("Please check if the model file is corrupted or incompatible.")
+        return None
 
 def preprocess_image(image):
     try:
