@@ -10,7 +10,6 @@ import gdown
 from PIL import Image
 import tensorflow as tf
 from tensorflow.keras.models import load_model
-from tensorflow.keras.layers.preprocessing.image_preprocessing import RandomRotation, RandomFlip
 import time
 
 # Force TensorFlow to use CPU on Streamlit Cloud
@@ -52,14 +51,12 @@ def load_trained_model():
                 gdown.download(MODEL_URL, MODEL_PATH, fuzzy=True, quiet=False)
         
         with st.spinner("🔄 Loading model..."):
-            # Custom objects dictionary for model loading
-            custom_objects = {
-                'RandomRotation': RandomRotation,
-                'RandomFlip': RandomFlip
-            }
-            
-            # Load model with custom objects
-            with tf.keras.utils.custom_object_scope(custom_objects):
+            try:
+                # First try loading without custom objects
+                model = load_model(MODEL_PATH)
+                return model
+            except:
+                # If that fails, try loading with compile=False
                 model = load_model(MODEL_PATH, compile=False)
                 # Recompile the model with basic settings
                 model.compile(
