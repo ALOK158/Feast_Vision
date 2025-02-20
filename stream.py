@@ -7,6 +7,9 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 import time
 
+# Force TensorFlow to use CPU on Streamlit Cloud
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 # Model configuration
 MODEL_ID = "12_1pkbE5zjeySCrgkHGjghiIEgPhQHXn"
 MODEL_PATH = "FinalModel_1.keras"
@@ -43,38 +46,18 @@ def load_trained_model():
                 gdown.download(MODEL_URL, MODEL_PATH, fuzzy=True, quiet=False)
         
         with st.spinner("🔄 Loading model..."):
-            # Custom load options to handle version differences
-            custom_objects = {
-                'RandomRotation': tf.keras.layers.RandomRotation,
-                'RandomFlip': tf.keras.layers.RandomFlip
-            }
-            model = load_model(
-                MODEL_PATH,
-                custom_objects=custom_objects,
-                compile=False  # Don't compile initially
-            )
-            
-            # Recompile with basic settings
-            model.compile(
-                optimizer='adam',
-                loss='sparse_categorical_crossentropy',
-                metrics=['accuracy']
-            )
-            return model
-            
+            return load_model(MODEL_PATH)
     except Exception as e:
         st.error(f"❌ Error loading model: {str(e)}")
-        st.stop()
+        return None  # Prevents app crash
 
 def preprocess_image(image):
     try:
         image = image.convert("RGB")
         image = image.resize((224, 224))
-        img_array = np.array(image, dtype=np.float32)
-        img_array = img_array / 255.0
+        img_array = np.array(image, dtype=np.float32) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
         return img_array
-    
     except Exception as e:
         st.error(f"❌ Error preprocessing image: {str(e)}")
         return None
@@ -84,7 +67,10 @@ def main():
     st.write("Upload an image to classify it using EfficientNetB0")
     
     model = load_trained_model()
-    
+    if model is None:
+        st.error("🚨 Model failed to load. Please check logs.")
+        return
+
     uploaded_file = st.file_uploader(
         "Choose an image file",
         type=["jpg", "jpeg", "png", "bmp"],
