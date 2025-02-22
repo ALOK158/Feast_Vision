@@ -1,5 +1,9 @@
-numpy==1.26.2
-pillow==10.3.0
+fastapi==0.115.8
+gdown==5.2.0
+keras==3.4.1
+numpy==2.2.3
+Pillow==11.1.0
 streamlit==1.40.0
 tensorflow==2.17.0
-gdown==5.2.0
+tensorflow_intel==2.17.0
+uvicorn==0.34.0
