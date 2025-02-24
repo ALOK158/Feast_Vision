@@ -82,8 +82,8 @@ def preprocess_image(image):
         return None
 
 def main():
-    st.title("🔍 Image Classification")
-    st.write("Upload an image to classify it using EfficientNetB0")
+    st.title("🍕 FEAST AI")
+    st.write("Upload Image of Food you find difficult to recognize")
     
     model = load_trained_model()
     if model is None:
