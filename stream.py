@@ -22,8 +22,8 @@ MODEL_URL = f"https://drive.google.com/uc?export=download&id={MODEL_ID}"
 
 # Set page config
 st.set_page_config(
-    page_title="Image Classifier",
-    page_icon="🔍",
+    page_title="FEAST AI",
+    page_icon="🍕",
     layout="wide"
 )
 
