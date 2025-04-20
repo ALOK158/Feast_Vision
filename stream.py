@@ -56,7 +56,7 @@ def preprocess_image(image):
     try:
         image = image.convert("RGB")
         image = image.resize((224, 224))
-        img_array = np.array(image, dtype=np.float32) / 255.0
+        img_array = np.array(image, dtype=np.float16) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
         return img_array
     except Exception as e:
