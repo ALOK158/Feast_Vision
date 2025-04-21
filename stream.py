@@ -45,6 +45,10 @@ def load_trained_model():
         with st.spinner("🔄 Loading model..."):
             model = tf.keras.models.load_model(MODEL_PATH, compile=False)
             model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+            # Verify model output shape
+            output_shape = model.output_shape[-1]
+            if output_shape != 101:
+                st.warning(f"⚠️ Model output shape is {output_shape}, expected 101. Predictions may be incorrect.")
             return model
     except Exception as e:
         st.error(f"❌ Error loading model: {str(e)}")
@@ -57,10 +61,20 @@ def preprocess_image(image):
         image = image.resize((224, 224))
         img_array = np.array(image, dtype=np.float16) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
+        # Log image stats for debugging
+        st.write(f"📷 Image shape: {img_array.shape}, Min: {img_array.min():.2f}, Max: {img_array.max():.2f}")
         return img_array
     except Exception as e:
         st.error(f"❌ Error preprocessing image: {str(e)}")
         return None
+
+def get_top_k_predictions(prediction, food_labels, k=3):
+    """Return top k predicted classes with their confidence scores."""
+    probs = np.squeeze(prediction)
+    top_k_indices = np.argsort(probs)[-k:][::-1]
+    top_k_labels = [food_labels[i] if i < len(food_labels) else "Unknown" for i in top_k_indices]
+    top_k_confidences = [probs[i] * 100 for i in top_k_indices]
+    return list(zip(top_k_labels, top_k_confidences))
 
 def main():
     st.title("🍕 FEAST AI")
@@ -71,7 +85,7 @@ def main():
         st.button("Retry Loading Model", on_click=lambda: st.experimental_rerun())
         return
 
-    # Updated food labels with all 101 Food-101 classes
+    # Food labels for Food-101 dataset
     food_labels = [
         "apple_pie", "baby_back_ribs", "baklava", "beef_carpaccio", "beef_tartare", "beet_salad", 
         "beignets", "bibimbap", "bread_pudding", "breakfast_burrito", "bruschetta", "caesar_salad", 
@@ -92,7 +106,7 @@ def main():
         "tuna_tartare", "waffles"
     ]
     
-    # Nutrition and recipes (kept minimal as in original)
+    # Nutrition and recipes (minimal as in original)
     nutrition = {"pizza": "~800 kcal", "sushi": "~200 kcal", "hamburger": "~600 kcal", "steak": "~700 kcal"}
     recipes = {
         "pizza": "Margherita Pizza: Ingredients - Tomato, Mozzarella, Basil; Instructions - Spread sauce, add cheese, bake at 200°C for 15 min.",
@@ -120,10 +134,23 @@ def main():
                 if processed_image is not None:
                     try:
                         prediction = model.predict(processed_image, verbose=0)
+                        # Log prediction stats for debugging
+                        st.write(f"🔍 Prediction shape: {prediction.shape}, Max prob: {np.max(prediction):.4f}, Min prob: {np.min(prediction):.4f}")
+                        
                         predicted_class_index = np.argmax(prediction, axis=1)[0]
                         confidence = np.max(prediction) * 100
-                        predicted_food = food_labels[predicted_class_index] if predicted_class_index < len(food_labels) else "Unknown"
+                        
+                        # Validate predicted index
+                        if predicted_class_index >= len(food_labels):
+                            st.error(f"❌ Predicted index {predicted_class_index} is out of bounds for {len(food_labels)} classes.")
+                            predicted_food = "Unknown"
+                        else:
+                            predicted_food = food_labels[predicted_class_index]
+                        
                         processing_time = time.time() - start_time
+                        
+                        # Get top 3 predictions
+                        top_k_preds = get_top_k_predictions(prediction, food_labels, k=3)
                         
                         st.markdown("### 📊 Prediction Results")
                         st.markdown(
@@ -136,6 +163,12 @@ def main():
                             """,
                             unsafe_allow_html=True
                         )
+                        
+                        # Display top 3 predictions
+                        st.markdown("#### Top 3 Predictions")
+                        for label, conf in top_k_preds:
+                            st.write(f"- {label}: {conf:.1f}%")
+                        
                         if predicted_food in recipes:
                             st.markdown(
                                 f"""
