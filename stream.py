@@ -16,7 +16,7 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 # Model configuration
 MODEL_ID = "12_1pkbE5zjeySCrgkHGjghiIEgPhQHXn"
-MODEL_PATH = "FinalModel_1.keras"
+MODEL_PATH = "FinalModel_1.4.keras"
 MODEL_URL = f"https://drive.google.com/uc?export=download&id={MODEL_ID}"
 
 # Set page config
