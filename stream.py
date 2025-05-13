@@ -173,7 +173,7 @@ def main():
                                 <p>Confidence: <strong>{prob*100:.1f}%</strong></p>
                                 <progress value="{prob}" max="1"></progress>
                             </div>
-                            "", unsafe_allow_html=True)
+                            """, unsafe_allow_html=True)
                 
                 # Add some fun facts
                 winning_food = top_5_labels[0].replace('_', ' ')
