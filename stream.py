@@ -7,8 +7,13 @@ from PIL import Image
 import tensorflow as tf
 import time
 
+
+
 # Force TensorFlow to use CPU on Streamlit Cloud
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
+# Streamlit UI
+st.set_page_config(page_title="Image Classifier", layout="centered")  # Set this first
 
 # Model configuration
 MODEL_ID = "12_1pkbE5zjeySCrgkHGjghiIEgPhQHXn"
