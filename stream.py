@@ -16,8 +16,9 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 st.set_page_config(page_title="Image Classifier", layout="centered")  # Set this first
 
 # Model configuration
-MODEL_ID = "12_1pkbE5zjeySCrgkHGjghiIEgPhQHXn"
-MODEL_PATH = "best_model (2).keras"
+# Updated model configuration
+MODEL_ID = "1d7tKkgWC0lLooULNYTg_qCLGHbtf98ie"  # New file ID from your link
+MODEL_PATH = "food_classifier.keras"  # Recommended simple filename
 MODEL_URL = f"https://drive.google.com/uc?export=download&id={MODEL_ID}"
 
 def load_trained_model():
