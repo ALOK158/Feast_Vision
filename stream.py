@@ -69,7 +69,6 @@ def load_and_prep(image_file, shape=224, scale=False):
     return image
 
 # Streamlit UI
-st.set_page_config(page_title="Image Classifier", layout="centered")
 st.title("🔍 Image Classification App")
 st.write("Upload an image to see the top 5 class predictions from the trained model.")
 
