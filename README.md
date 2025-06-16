@@ -92,7 +92,8 @@ streamlit run src/app.py
 - ✅ Train on **Food101 dataset** with EfficientNet.
 - ⏳ Convert model to **TF Lite** or **ONNX** for deployment.
 - ⏳ Develop an **API (FastAPI/Flask)** for serving predictions.
-- ⏳ Build a **web app** for user interaction (Streamlit/Flask).
+- ✅  Build a **web app** for user interaction (Streamlit/Flask).
+  
 
 ---
 
