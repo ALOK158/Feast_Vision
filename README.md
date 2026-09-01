@@ -1,37 +1,43 @@
 # 📌 FeastAI
 
-## 📝 Project Overview
+>Now the project is getting upgraded and moving beyond multi-class EfficientNet classification toward VLM-powered food understanding. 
+
+## Project Overview
 
 This project implements **Food101** image classification using **EfficientNet** via **transfer learning**. The goal is to classify food images into 101 categories efficiently. The model is trained on the **Food101 dataset** and fine-tuned for improved accuracy.
 
----
+## Features
 
-## 🚀 Features
-
-- ✅ Uses **EfficientNet (B0-B7)** as a feature extractor.
+- ✅ Uses **EfficientNetB0/B1** as a feature extractor.
 - ✅ Fine-tunes top layers while freezing lower layers.
 - ✅ Implements **data augmentation, batch normalization, dropout** for better generalization.
-- ✅ Saves trained models in `.h5` or `.pb` format for deployment.
+- ✅ Mixed precision training for faster convergence.
+- ✅ Exports to **ONNX** for lightweight framework for easy deployment.
 
----
 
-## 📂 Repository Structure
+##  Repository Structure
 
 ```
-/food101-efficientnet
-  ├── notebooks/          # Jupyter Notebooks for experiments
-  ├── README.md           # Project overview & instructions
+Feast_Vision/
+├── FeastAI.ipynb # Training notebook — data pipeline, EfficientNet model, training loop
+├── stream.py # Streamlit app for inference
+├── convert_2_onnx.py # Converts trained Keras model to ONNX
+├── food_classifier_model/
+│   └── food_classifier.onnx # Deployment-ready ONNX model
+├── requirements.txt # Python dependencies
+└── README.md # Project documentation
 ```
 
----
+> Note: `food_classifier.keras` (the original trained model, ~131MB) is kept locally and is not pushed to this repo  only the converted `.onnx` model is published.
 
-## 📦 Installation & Setup
 
-### 1️⃣ Clone the repository:
+##  Installation & Setup
+
+###  Clone the repository:
 
 ```sh
-git clone https://github.com/yourusername/food101-efficientnet.git
-cd food101-efficientnet
+git clone https://github.com/ALOK158/Feast_Vision.git
+cd Feast_Vision
 ```
 
 ### 2️⃣ Install dependencies:
@@ -40,7 +46,7 @@ cd food101-efficientnet
 pip install -r requirements.txt
 ```
 
-### 3️⃣ Download the Food101 dataset:
+### 3️⃣ Download the Food101 dataset (handled inside the notebook):
 
 ```python
 import tensorflow_datasets as tfds
@@ -51,60 +57,41 @@ dataset, info = tfds.load("food101", as_supervised=True, with_info=True)
 
 ## 🏗 Model Training
 
-▶️ Run the training script:
+Training is done inside **`FeastAI.ipynb`**  open it in Jupyter/Colab and run through the cells (data loading, preprocessing, EfficientNet transfer learning, training with early stopping + LR reduction callbacks).
+
+---
+
+## 🔄 Model Conversion (ONNX)
+
+Convert the trained Keras model to ONNX for lighter, framework-agnostic deployment:
 
 ```sh
-python src/train.py
+python convert_2_onnx.py --model food_classifier_model/food_classifier.keras --output food_classifier_model/food_classifier.onnx
 ```
 
-Or use the Jupyter Notebook in `notebooks/` for step-by-step training.
+This reduces the model from ~131MB (Keras) to ~13MB (ONNX) with the same accuracy  and enabling deployment to web and mobile app without needing the full TensorFlow runtime and huge storage.
 
----
 
-## 📊 Evaluation
+##  Deployment
 
-📌 After training, evaluate the model:
+🔗 **Live app:** [https://feastvision-gwapvesrky9vmhazuff2oc.streamlit.app/](https://feastvision-gwapvesrky9vmhazuff2oc.streamlit.app/)
+
+Run the Streamlit app locally:
 
 ```sh
-python src/evaluate.py
+streamlit run stream.py
 ```
 
----
+##  To-Do / Future Plans
 
-## 🚀 Deployment
+- ✅ Train on **Food101 dataset** with EfficientNet Fine tuning.
+- ✅  Deployed model on Streamlit Cloud and anyone can use it using our web app
+- ✅ Convert model to **ONNX** for lightweight deployment.
+- ✅ Build a **web app** for user interaction (Streamlit).
+- ⏳ Upgrade to a **VLM (Vision-Language Model)** for open-vocabulary food identification and upgrading from multi class classification of 101 food types.
+- ⏳ Explore **Fine_tuning** for better working on our partcualr food identification and info domain.
+- ⏳ Will add To-Do list as new ideas comes in.
 
-### 🔹 Deploy the model as an API:
-
-```sh
-python src/deploy.py
-```
-
-### 🔹 Integrate into a web app using **Streamlit**:
-
-```sh
-streamlit run src/app.py
-```
-
----
-
-## 🎯 Future Plans
-
-- ✅ Train on **Food101 dataset** with EfficientNet.
-- ⏳ Convert model to **TF Lite** or **ONNX** for deployment.
-- ⏳ Develop an **API (FastAPI/Flask)** for serving predictions.
-- ✅  Build a **web app** for user interaction (Streamlit/Flask).
-  
-
----
-
-## 🤝 Contributing
-
-💡 Feel free to submit **issues, feature requests, or pull requests** to improve the project.
-
----
-
-## 📜 License
+##  License
 
 📌 This project is open-source and available under the **MIT License**.
-
-
